@@ -14,6 +14,9 @@ import os
 from stress_predictor import FacultyStressPredictor
 from wellness_expert_python import WellnessExpertSystem
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def print_banner():
     """Display system banner"""
     print("\n" + "="*70)
@@ -32,7 +35,7 @@ def run_integrated_system():
     expert_system = WellnessExpertSystem()
 
     # Load or train model
-    model_file = 'stress_model.joblib'
+    model_file = os.path.join(SCRIPT_DIR, 'stress_model.joblib')
     if os.path.exists(model_file):
         predictor.load_model(model_file)
     else:
@@ -100,7 +103,7 @@ def run_integrated_system():
         elif choice == '2':
             # Select from dataset
             import pandas as pd
-            df = pd.read_csv('dataset_with_labels.csv')
+            df = pd.read_csv(os.path.join(SCRIPT_DIR, 'dataset_with_labels.csv'))
 
             print("\n" + "="*50)
             print("SELECT FACULTY FROM DATASET")
@@ -149,7 +152,7 @@ def run_integrated_system():
         elif choice == '3':
             # Batch analysis
             import pandas as pd
-            df = pd.read_csv('dataset_with_labels.csv')
+            df = pd.read_csv(os.path.join(SCRIPT_DIR, 'dataset_with_labels.csv'))
 
             print("\n" + "="*50)
             print("BATCH ANALYSIS RESULTS")

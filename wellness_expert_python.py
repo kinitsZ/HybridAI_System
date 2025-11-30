@@ -10,8 +10,12 @@ The system reads stress level from the Python ML output file
 and generates personalized wellness recommendations using rules.
 """
 
+import os
+
 class WellnessExpertSystem:
     def __init__(self):
+        # Get the directory where this script is located
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
         # Knowledge Base - Facts (10+ facts about faculty well-being)
         self.knowledge_base = {
             # Fact 1: Sleep indicators
@@ -119,6 +123,16 @@ class WellnessExpertSystem:
     def read_stress_file(self, filepath='stress_output.txt'):
         """Read stress level from Python ML output file"""
         try:
+            # If relative path, try script directory first, then parent directory
+            if not os.path.isabs(filepath):
+                script_path = os.path.join(self.script_dir, filepath)
+                parent_path = os.path.join(os.path.dirname(self.script_dir), filepath)
+                if os.path.exists(script_path):
+                    filepath = script_path
+                elif os.path.exists(parent_path):
+                    filepath = parent_path
+                else:
+                    filepath = script_path  # Will raise FileNotFoundError
             with open(filepath, 'r') as f:
                 lines = f.readlines()
 

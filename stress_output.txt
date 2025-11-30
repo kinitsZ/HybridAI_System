@@ -1,2 +1,1 @@
-faculty_id:F009
-stress_level:high
+faculty_id:F004,stress_level:medium

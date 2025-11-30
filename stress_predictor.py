@@ -26,6 +26,8 @@ class FacultyStressPredictor:
             'Research_Load_Hours', 'Committee_Duties', 'Admin_Tasks',
             'Meeting_Hours', 'Sleep_Hours', 'Weekend_Work'
         ]
+        # Get the directory where this script is located
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
 
     def calculate_wss(self, row):
         """Calculate Workload Stress Score based on the formula"""
@@ -117,6 +119,9 @@ class FacultyStressPredictor:
     def load_and_prepare_data(self, filepath='dataset_with_labels.csv'):
         """Load dataset and prepare for training"""
         print("Loading dataset...")
+        # If relative path, make it relative to script directory
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(self.script_dir, filepath)
         df = pd.read_csv(filepath)
 
         # Features and target
@@ -192,11 +197,17 @@ class FacultyStressPredictor:
 
     def save_model(self, filepath='stress_model.joblib'):
         """Save trained model to file"""
+        # If relative path, make it relative to script directory
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(self.script_dir, filepath)
         joblib.dump(self.model, filepath)
         print(f"\nModel saved to: {filepath}")
 
     def load_model(self, filepath='stress_model.joblib'):
         """Load trained model from file"""
+        # If relative path, make it relative to script directory
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(self.script_dir, filepath)
         self.model = joblib.load(filepath)
         print(f"Model loaded from: {filepath}")
 
@@ -260,11 +271,30 @@ class FacultyStressPredictor:
 
     def generate_prolog_output(self, faculty_id, stress_level, output_file='stress_output.txt'):
         """Generate output file for Visual Prolog integration"""
-        with open(output_file, 'w') as f:
-            f.write(f"faculty_id:{faculty_id}\n")
-            f.write(f"stress_level:{stress_level.lower()}\n")
+        # Write to script directory (CS18A-FINALPROJECT)
+        # Write both values on a single line for easier parsing in Visual Prolog
+        script_output = os.path.join(self.script_dir, output_file)
+        with open(script_output, 'w') as f:
+            f.write(f"faculty_id:{faculty_id},stress_level:{stress_level.lower()}\n")
+        
+        # Also write to parent directory where Visual Prolog expects it
+        parent_dir = os.path.dirname(self.script_dir)
+        parent_output = os.path.join(parent_dir, output_file)
+        with open(parent_output, 'w') as f:
+            f.write(f"faculty_id:{faculty_id},stress_level:{stress_level.lower()}\n")
+        
+        # Also write to exe64 directory (where executable runs from)
+        exe64_dir = os.path.join(parent_dir, 'exe64')
+        if os.path.exists(exe64_dir):
+            exe64_output = os.path.join(exe64_dir, output_file)
+            with open(exe64_output, 'w') as f:
+                f.write(f"faculty_id:{faculty_id},stress_level:{stress_level.lower()}\n")
 
-        print(f"\nProlog output saved to: {output_file}")
+        print(f"\nProlog output saved to:")
+        print(f"  - {script_output} (Python directory)")
+        print(f"  - {parent_output} (for Visual Prolog root)")
+        if os.path.exists(exe64_dir):
+            print(f"  - {exe64_output} (for Visual Prolog exe64)")
         print(f"Content: faculty_id={faculty_id}, stress_level={stress_level.lower()}")
 
 def get_user_input():
@@ -299,7 +329,8 @@ def main():
     predictor = FacultyStressPredictor()
 
     # Check if model exists
-    model_file = 'stress_model.joblib'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    model_file = os.path.join(script_dir, 'stress_model.joblib')
     if os.path.exists(model_file):
         print("\nExisting model found. Loading...")
         predictor.load_model(model_file)
@@ -347,7 +378,8 @@ def main():
 
         elif choice == '2':
             # Predict from dataset
-            df = pd.read_csv('dataset_with_labels.csv')
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            df = pd.read_csv(os.path.join(script_dir, 'dataset_with_labels.csv'))
             faculty_id = input("Enter Faculty ID (e.g., F001): ").strip().upper()
 
             if faculty_id in df['Faculty_ID'].values:
@@ -380,6 +412,8 @@ def main():
 
         elif choice == '3':
             # Retrain model
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            model_file = os.path.join(script_dir, 'stress_model.joblib')
             X, y = predictor.load_and_prepare_data()
             predictor.train_model(X, y, model_type='random_forest')
             predictor.save_model(model_file)
